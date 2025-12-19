@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  storage:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  broker:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+
+  aggregator:
+    build: ./aggregator
+    depends_on: [storage, broker]
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@storage:5432/db
+      - BROKER_URL=redis://broker:6379
+
+volumes:
+  pg_data:
+  redis_data:
